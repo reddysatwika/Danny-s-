@@ -1,0 +1,100 @@
+1.
+SELECT s.customer_id,sum(m.price) as total_price
+FROM dannys_diner.sales s
+JOIN
+dannys_diner.menu m
+on  s.product_id=m.product_id
+GROUP BY s.customer_id
+ORDER BY s.customer_id
+
+2. 
+SELECT customer_id, count(order_date)
+FROM  dannys_diner.sales
+GROUP BY customer_id
+ORDER BY customer_id
+
+3. 
+WITH satwika as(
+ SELECT  s.customer_id,m.product_name,
+ROW NUMBER () OVER (partition by s.customer_id order by s.order_date) AS  purchased_item
+FROM dannys_diner.sales s
+JOIN
+dannys_diner.menu m
+ON s.product_id=m.product_id)
+SELECT * from satwika
+WHERE purchased_item=1
+
+4.
+SELECT m.product_name, COUNT(m.product_name) AS purchase_count
+FROM  dannys_diner.sales s
+JOIN dannys_diner.menu m ON s.product_id = m.product_id
+GROUP BY m.product_name
+ORDER BY purchase_count DESC
+LIMIT 1;
+
+
+ 5.
+ with satwika as (
+   select s.customer_id,m.product_name,  COUNT(*) AS purchase_count,
+        ROW_NUMBER() OVER(PARTITION BY s.customer_id ORDER BY COUNT(*) DESC) AS rn
+ from dannys_diner.sales s
+ join 
+ dannys_diner.menu m
+ on s.product_id = m.product_id
+ group by s.customer_id,m.product_name
+  )
+ select * from satwika
+where rn=1
+
+6.
+with satwika as
+(
+  select  m.customer_id ,m.join_date,me.product_name,s.order_date,
+dense_rank() over (partition by  s.customer_id order by s.order_date) as purchased_Date
+from dannys_diner.sales s
+join
+  dannys_diner.menu me
+on s.product_id=me.product_id
+  join
+  dannys_diner.members m
+on s.customer_id=m.customer_id
+where s.order_date>=m.join_date
+)
+select * from satwika
+where purchased_Date =1
+
+
+7.
+with satwika as
+(
+  select  m.customer_id ,m.join_date,me.product_name,s.order_date,
+Dense_rank() over (partition by  s.customer_id order by s.order_date) as purchased_Date
+
+from dannys_diner.sales s
+join
+  dannys_diner.menu me
+on s.product_id=me.product_id
+  join
+  dannys_diner.members m
+on s.customer_id=m.customer_id
+where s.order_date<m.join_date
+)
+select * from satwika
+where 
+purchased_Date=1
+
+
+8.
+ select s.customer_id,
+count(m.product_name),
+sum(m.price)
+from dannys_diner.sales s
+join dannys_diner.menu m
+on 
+s.product_id=m.product_id
+join dannys_diner.members me
+on 
+s.customer_id=me.customer_id
+where s.order_date< me.join_date
+group by s.customer_id
+
